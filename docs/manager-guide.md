@@ -58,54 +58,99 @@ To add a new MCP Server (e.g., GitLab, Jira):
 
 ### OpenClaw Session Retention
 
-Both the Manager and Worker OpenClaw instances are configured with a **7-day idle session retention** for the Matrix channel:
+The Manager and Worker OpenClaw instances use **type-based session policies**:
 
 ```json
 "session": {
-  "resetByChannel": {
-    "matrix": { "mode": "idle", "idleMinutes": 10080 }
+  "resetByType": {
+    "dm":    { "mode": "daily", "atHour": 4 },
+    "group": { "mode": "idle",  "idleMinutes": 2880 }
   }
 }
 ```
 
-This means a room's conversation context is preserved as long as a message is sent within any 7-day window. Without activity, the session resets and the next message starts a fresh context — losing continuity for long-running projects.
+- **DM sessions** (Manager ↔ Human Admin): reset daily at 04:00. The Manager's daily heartbeat prevents context buildup from accumulating indefinitely.
+- **Group rooms** (Worker rooms, project rooms): reset after **2 days** (2880 minutes) of inactivity. As long as activity is maintained, context is preserved.
 
-### Automatic Expiry Monitoring
+### Daily Keepalive Notification (10:00)
 
-The Manager performs a daily scan of all known Matrix rooms (Worker rooms and active project rooms) and checks how long each has been idle. Rooms that have been idle for **6 or more days** (1 day before the 7-day limit) are flagged as near-expiry.
+Each day between 10:00 and 10:59, the Manager checks whether it has already sent a keepalive notification today. If not, it:
 
-When near-expiry rooms are detected, the Manager notifies the human admin in DM:
+1. Lists all active group rooms (Worker rooms + active project rooms)
+2. Reads the previous day's preferences (which rooms were selected)
+3. Sends a notification in **the Human Admin's DM** that includes:
+   - The list of active rooms subject to 2-day idle reset
+   - Why keepalive matters: Workers' conversation history will be wiped after 2 days of inactivity, losing context for ongoing tasks
+   - Why skipping keepalive is valid: fewer messages in history means lower token cost per LLM call
+   - Yesterday's selection (if any), with the option to reuse or adjust
+   - Shortcut replies: 「继续」to reuse yesterday's choices, a new room list to update, 「不需要」to skip
 
-> The following Matrix rooms will lose their conversation history in ~1 day due to idle expiry. Reply with the rooms you want to keep alive and I'll send a keepalive message.
+### Responding to the Keepalive Notification
 
-### Sending Keepalive Messages
+Reply in the DM with one of:
 
-When the human admin confirms which rooms to keep alive, the Manager runs:
+| Reply | Effect |
+|-------|--------|
+| 「继续」 / "same" | Reuse yesterday's room selection |
+| Room names or IDs | Update selection to the provided rooms |
+| 「不需要」 / "skip" | Skip keepalive for today |
+
+The Manager will save the selection and send a keepalive message to each chosen room, waking stopped Worker containers as needed.
+
+### Manual Keepalive
+
+To manually trigger keepalive for a specific room:
 
 ```bash
-bash /opt/hiclaw/scripts/session-keepalive.sh --action keepalive --room <room_id>
+docker exec hiclaw-manager bash -c \
+  'MANAGER_MATRIX_TOKEN=$(jq -r .channels.matrix.accessToken ~/manager-workspace/openclaw.json) \
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action keepalive --room "!roomid:domain"'
 ```
 
-The script:
-1. Checks if any Worker containers in the room are stopped and wakes them up (`lifecycle-worker.sh --action start`)
-2. Waits 30 seconds for stopped Workers to reconnect to Matrix
-3. Sends a message mentioning all room members, resetting the idle timer for every participant
-
-This ensures all participants — including Workers — have their sessions refreshed together.
-
-### Manual Scan
-
-To trigger a scan immediately (bypassing the 23-hour guard):
+To view active rooms and current preferences:
 
 ```bash
-# Delete the last-run timestamp to force a fresh scan
-# (~/hiclaw-manager is the default host path; adjust if you chose a different HICLAW_WORKSPACE_DIR)
-rm ~/hiclaw-manager/.session-scan-last-run
+docker exec hiclaw-manager bash -c \
+  'MANAGER_MATRIX_TOKEN=$(jq -r .channels.matrix.accessToken ~/manager-workspace/openclaw.json) \
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action list-rooms'
 
 docker exec hiclaw-manager bash -c \
   'MANAGER_MATRIX_TOKEN=$(jq -r .channels.matrix.accessToken ~/manager-workspace/openclaw.json) \
-   bash /opt/hiclaw/scripts/session-keepalive.sh --action scan'
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action load-prefs'
 ```
+
+### Session Reset Fallback
+
+When a Worker's session is reset (context wiped due to 2 days of inactivity), the following files allow resuming any task without losing progress:
+
+#### Progress Logs
+
+During task execution, Workers append to a daily progress log after every meaningful action:
+
+```
+~/hiclaw-fs/shared/tasks/{task-id}/progress/YYYY-MM-DD.md
+```
+
+These files are stored in shared MinIO storage and are readable by both the Manager and other Workers. They capture completed steps, current state, issues encountered, and next planned actions — providing a full audit trail even after a session reset.
+
+#### Task History (LRU Top 10)
+
+Each Worker maintains a local task history file:
+
+```
+~/hiclaw-fs/agents/{worker-name}/task-history.json
+```
+
+This file records the 10 most recently active tasks (task ID, brief description, status, task directory path, last worked timestamp). When a new task pushes the count above 10, the oldest entry is archived to `history-tasks/{task-id}.json`.
+
+#### Resuming a Task After Reset
+
+When the Manager or Human Admin asks a Worker to resume a task after a session reset, the Worker:
+
+1. Reads `task-history.json` (or `history-tasks/{task-id}.json` for older tasks) to locate the task directory
+2. Reads `spec.md` and `plan.md` from the task directory
+3. Reads recent `progress/YYYY-MM-DD.md` files (newest first) to reconstruct context
+4. Continues work and appends to today's progress log
 
 ## Monitoring
 

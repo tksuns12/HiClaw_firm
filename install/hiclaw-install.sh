@@ -310,6 +310,11 @@ EOF
     # Manager workspace mount (always a host directory, defaulting to ~/hiclaw-manager)
     WORKSPACE_MOUNT_ARGS="-v ${HICLAW_WORKSPACE_DIR}:/root/manager-workspace"
 
+    # Pass host timezone to container so date/time commands reflect local time
+    HOST_TZ="$(cat /etc/timezone 2>/dev/null | tr -d '[:space:]' || \
+               timedatectl show --value -p Timezone 2>/dev/null || echo UTC)"
+    TZ_ARGS="-e TZ=${HOST_TZ}"
+
     # Host directory mount: for file sharing with agents (defaults to user's home)
     if [ "${HICLAW_NON_INTERACTIVE}" != "1" ] && [ -z "${HICLAW_HOST_SHARE_DIR+x}" ]; then
         read -p "Host directory to share with agents (default: $HOME): " HICLAW_HOST_SHARE_DIR
@@ -334,6 +339,7 @@ EOF
         --name hiclaw-manager \
         --env-file "${ENV_FILE}" \
         -e HOST_ORIGINAL_HOME="${HICLAW_HOST_SHARE_DIR}" \
+        ${TZ_ARGS} \
         ${SOCKET_MOUNT_ARGS} \
         -p "${HICLAW_PORT_GATEWAY}:8080" \
         -p "${HICLAW_PORT_CONSOLE}:8001" \

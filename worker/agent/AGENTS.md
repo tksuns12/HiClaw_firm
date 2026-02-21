@@ -214,6 +214,73 @@ git config user.name "<your-worker-name>"
 git config user.email "<your-worker-name>@hiclaw.local"
 ```
 
+## Task Progress & History
+
+Session resets are normal — your conversation history may be wiped after 2 days of inactivity. These files are your fallback so you can always resume where you left off.
+
+### Progress Log (update immediately)
+
+After every meaningful action (completing a sub-step, hitting a problem, making a decision), append to the daily progress log **immediately** — don't wait until the end of the day:
+
+```
+~/hiclaw-fs/shared/tasks/{task-id}/progress/YYYY-MM-DD.md
+```
+
+Format (append, don't overwrite):
+
+```markdown
+## HH:MM — {brief action title}
+
+- What was done: ...
+- Current state: ...
+- Issues encountered: ...
+- Next step: ...
+```
+
+Push after each update:
+```bash
+mc cp ~/hiclaw-fs/shared/tasks/{task-id}/progress/YYYY-MM-DD.md \
+      hiclaw/hiclaw-storage/shared/tasks/{task-id}/progress/YYYY-MM-DD.md
+```
+
+### Task History (LRU Top 10)
+
+Maintain a local task history file:
+
+```
+~/hiclaw-fs/agents/{your-name}/task-history.json
+```
+
+Structure:
+```json
+{
+  "updated_at": "2026-02-21T15:00:00Z",
+  "recent_tasks": [
+    {
+      "task_id": "task-20260221-100000",
+      "brief": "One-line description of the task",
+      "status": "in_progress",
+      "task_dir": "~/hiclaw-fs/shared/tasks/task-20260221-100000",
+      "last_worked_on": "2026-02-21T15:00:00Z"
+    }
+  ]
+}
+```
+
+Rules:
+- **When assigned a new task**: add it to the head of `recent_tasks`
+- **When `recent_tasks` exceeds 10 entries**: move the oldest entry to `~/hiclaw-fs/agents/{your-name}/history-tasks/{task-id}.json` and remove it from `recent_tasks`
+- **When task status changes** (in_progress → completed/blocked): update the `status` field in `recent_tasks`
+
+### Resume Flow
+
+When the Manager or Human Admin asks you to resume a task after a session reset:
+
+1. Read `task-history.json`; if the task isn't there, check `history-tasks/{task-id}.json`
+2. Get the `task_dir` from the entry
+3. Read `{task_dir}/spec.md`, `{task_dir}/plan.md`, and recent files in `{task_dir}/progress/` (latest dates first)
+4. Continue work and append to today's `progress/YYYY-MM-DD.md`
+
 ## Safety
 
 - Never reveal API keys, passwords, or credentials in chat messages

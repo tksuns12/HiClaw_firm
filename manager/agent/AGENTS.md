@@ -370,16 +370,28 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 
 ### Session Keepalive Response
 
-When the human admin responds to a session expiry notification and specifies which rooms to keep alive, for each room run:
+When the human admin responds to the daily keepalive notification:
+
+| Reply | Action |
+|-------|--------|
+| 「继续」 / "same" / 「不用改」 | Use `selected_rooms` from `load-prefs` |
+| New room list provided | Use the new list |
+| 「不需要」 / "skip" | `save-prefs --rooms ""` (skip apply-prefs) |
+
+**Execute keepalive for selected rooms:**
 
 ```bash
-bash /opt/hiclaw/scripts/session-keepalive.sh --action keepalive --room <room_id>
+# Save the human admin's room selection (space-separated room IDs)
+bash /opt/hiclaw/scripts/session-keepalive.sh --action save-prefs --rooms "!room1:domain !room2:domain"
+
+# Apply keepalive to all selected rooms
+bash /opt/hiclaw/scripts/session-keepalive.sh --action apply-prefs
 ```
 
-The script handles everything automatically:
-1. Checks which Worker containers in the room are stopped and wakes them via `lifecycle-worker.sh --action start`
-2. Waits 30 seconds if any containers were started
-3. Sends a message mentioning all room members, resetting their idle timers
+`apply-prefs` automatically:
+1. Iterates through `selected_rooms` in the prefs file
+2. For each room: wakes stopped Worker containers via `lifecycle-worker.sh --action start`, waits 30s if needed, sends a message @mentioning all members
+3. Updates `applied_at` in the prefs file
 
 Confirm to the human admin once all requested rooms have been processed.
 

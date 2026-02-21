@@ -107,18 +107,46 @@ bash -c 'source /opt/hiclaw/scripts/lib/container-api.sh && container_api_availa
 
 ---
 
-### 7. Matrix 会话过期检查（每日一次）
+### 7. 每日保活提醒（仅在 10:00–10:59 执行一次）
+
+执行条件：`date +%H` 输出 `10`，且 `load-prefs` 的 `PREFS_DATE` 不是今天。
 
 ```bash
-bash /opt/hiclaw/scripts/session-keepalive.sh --action scan
+HOUR=$(date +%H)
+if [ "$HOUR" = "10" ]; then
+    PREFS_DATE=$(bash /opt/hiclaw/scripts/session-keepalive.sh --action load-prefs | grep '^PREFS_DATE:' | cut -d' ' -f2)
+    TODAY=$(date '+%Y-%m-%d')
+    if [ "$PREFS_DATE" != "$TODAY" ]; then
+        # 执行每日保活提醒流程（见下）
+    fi
+fi
 ```
 
-- 若输出 `SCAN_RESULT: skipped`：跳过（距上次扫描不足 23 小时）
-- 若输出 `SCAN_RESULT: all_ok`：无需处理
-- 若输出包含 `NEAR_EXPIRY_ROOM:` 行：在与 Human Admin 的 DM 中通知（每行格式为 `room_id\ttype\tname\tidle`）：
-  「以下 Matrix 房间的消息将在约 1 天内因空闲过期（7 天空闲限制）：
-  - [worker/project] <name>（<room_id>，已空闲 Xh）
-  如需保留消息，请回复需要保活的房间名称或 room_id，我将向对应房间发送消息。」
+满足条件时，流程如下：
+
+1. 获取当前活跃房间列表：
+   ```bash
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action list-rooms
+   ```
+   输出格式：`ROOM: room_id\ttype\tname`
+
+2. 获取昨日偏好：
+   ```bash
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action load-prefs
+   ```
+   输出：`PREFS_DATE:`、`PREFS_APPLIED:`、`PREFS_ROOM:` 行
+
+3. 在与 **Human Admin 的 DM** 中发送保活提醒消息，内容须包含：
+   - 当前活跃的 Worker 房间和项目房间列表（group 类型，空闲超 2 天后重置）
+   - 说明为何需要保活：若不保活，Worker 在对应房间的对话历史将在 2 天内清空，导致后续对话丢失上下文；如有未完成任务，建议保活
+   - 说明不保活的好处：减少 token 开销（历史消息越长，每次 LLM 调用消耗越多）
+   - 列出昨日保活选择（若有 `PREFS_ROOM:` 行），询问是否继续或调整
+   - 提示：回复「继续」直接复用昨日选择，提供新列表则更新，回复「不需要」跳过今日保活
+
+4. 运行 mark-notified：
+   ```bash
+   bash /opt/hiclaw/scripts/session-keepalive.sh --action mark-notified
+   ```
 
 ---
 
