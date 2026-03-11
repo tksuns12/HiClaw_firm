@@ -11,17 +11,22 @@
   <a href="https://qr.dingtalk.com/action/joingroup?code=v1,k1,0etR5l8fxeb/6/mzE5hRE1uy4tkiwxvPV9+TdBv7sEM=&_dt_no_comment=1&origin=11"><img src="https://img.shields.io/badge/DingTalk-Join_Us-orange.svg" alt="DingTalk"></a>
 </p>
 
-**Deploy a team of AI Agents in 5 minutes. Manager coordinates Workers, all visible in your IM.**
+**HiClaw is an open-source multi-agent collaboration system. It enables multiple agents to collaborate within Matrix rooms, ensuring that the entire process is visible to humans and allows for intervention at any time.
+Designed with a Manager-Workers architecture, it allows humans to coordinate multiple Worker Agents through a Manager Agent to complete complex tasks. This accelerates the realization of OPOC (One-Person-One-Company) and the deployment of enterprise digital employees.**
 
-HiClaw is an open-source Agent Teams system built on [OpenClaw](https://github.com/nicepkg/openclaw). A Manager Agent acts as your AI chief of staff — it creates Workers, assigns tasks, monitors progress, and reports back. You stay in control, making decisions instead of babysitting agents.
+HiClaw is not positioned as a competitor to other "xxClaw" products; it is fundamentally an Agent Collaboration System.
 
-```
-You → Manager → Worker Alice (frontend)
-             → Worker Bob   (backend)
-             → Worker ...
-```
+Key Features:
 
-All communication happens in Matrix Rooms. You see everything, and can intervene anytime — just like messaging a team in a group chat.
+- 🦞**Customizable "Claws"**: Each Claw supports user customization. It can be an OpenClaw, CoPaw, NanoClaw, ZeroClaw, or a custom-built enterprise agent. The system currently comes pre-installed with OpenClaw.
+  
+- 🧬**Manager Claw Role**: Introduces a dedicated Manager Claw role. This eliminates the need for humans to manually manage every working Worker Claw, significantly reducing management overhead.
+  
+- ☎️**Native Matrix Communication**: Utilizes the Element IM client and Tuwunel IM server (both based on the Matrix real-time communication protocol). Unlike native protocols, this approach bypasses the complex integration and approval processes required by enterprise IMs like DingTalk or Feishu. This allows users to quickly experience the seamless interaction ("the thrill") of model services within an IM environment, while still supporting native OpenClaw IM integration.
+  
+- 📦**Shared File System (MinIO)**: Integrates MinIO as a shared file system for information exchange between agents. It also facilitates human-to-human collaboration, with shared memory stored directly on this file system.
+  
+- 🔐**Secure Entry via Higress AI Gateway**: Incorporates the Higress AI Gateway to centralize entry points and manage credentials. This significantly reduces security risks and alleviates user concerns regarding the security of native "Lobster" (OpenClaw) deployments.
 
 ## News
 
@@ -31,34 +36,23 @@ All communication happens in Matrix Rooms. You see everything, and can intervene
 
 ## Why HiClaw
 
-**Security by design**: Workers never hold real API keys or GitHub PATs. They only carry a consumer token (like a badge). Even a compromised Worker can't leak your credentials.
+- **Enterprise-Grade Security**: Worker Agents never hold real API Keys or GitHub PATs; they operate using only a consumer token (similar to an "ID badge"). Even if a Worker Agent is compromised, attackers cannot obtain any real credentials.
 
-**Truly open IM**: Built-in Matrix server means no Slack/Feishu bot approval process. Open Element Web in your browser, or use any Matrix client (Element, FluffyChat) on mobile — iOS, Android, Web.
+- **Multi-Agent Group Chat Network**: The Manager Agent intelligently decomposes tasks and coordinates multiple Worker Agents to execute them in parallel, significantly enhancing the capability to handle complex workflows.
 
-**One command to start**: A single `curl | bash` sets everything up — Higress AI Gateway, Matrix server, file storage, web client, and the Manager Agent itself.
+- **Matrix Protocol Driven**: Built on the open Matrix IM protocol, all agent communications are transparent and auditable. The system natively supports distributed deployment and federated communication.
 
-**Skills ecosystem**: Workers can pull from [skills.sh](https://skills.sh) (80,000+ community skills) on demand. Safe to use because Workers can't access real credentials anyway.
+- **Full Human Supervision**: Humans can enter any Matrix room at any time to observe agent conversations, allowing for real-time intervention or correction of agent behavior to ensure safety and control.
+
+- **Truly Out-of-the-Box IM Experience**: Comes with a built-in Matrix server, eliminating the need to apply for DingTalk or Feishu bots or wait for internal approvals. Users can start chatting immediately by opening Element Web in a browser or using mobile Matrix clients (such as Element or FluffyChat) on iOS, Android, and Web to command agents anytime, anywhere.
+
+- **Manager-Worker Architecture**: Features a clear two-tier Manager-Worker architecture with distinct responsibilities. This design makes it easy to extend and customize Worker Agents for different scenarios, supporting the management of CoPaw, NanoClaw, ZeroClaw, or custom-built enterprise agents.
+
+- **One command to start**: A single `curl | bash` sets everything up — Higress AI Gateway, Matrix server, file storage, web client, and the Manager Agent itself.
+
+- **Skills ecosystem**: Workers can pull from [skills.sh](https://skills.sh) (80,000+ community skills) on demand. Safe to use because Workers can't access real credentials anyway.
 
 ## Quick Start
-
-```bash
-bash <(curl -sSL https://higress.ai/hiclaw/install.sh)
-```
-
-That's it. The script asks for your LLM API key, then sets everything up. When it's done:
-
-```
-=== HiClaw Manager Started! ===
-  Open: http://127.0.0.1:18088
-  Login: admin / [generated password]
-  Tell the Manager: "Create a Worker named alice for frontend dev"
-```
-
-**Windows (PowerShell 7+):**
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://higress.ai/hiclaw/install.ps1'))
-```
 
 **Prerequisites**: Docker Desktop (Windows/macOS) or Docker Engine (Linux). That's all.
 
@@ -67,9 +61,48 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object
 
 **Resource requirements**: Minimum 2 CPU cores and 4 GB RAM. If you want to deploy multiple Workers for a more powerful Agent Teams experience, **4 CPU cores and 8 GB RAM are recommended** — OpenClaw's memory usage is relatively high. In Docker Desktop, go to Settings → Resources to adjust.
 
-### Upgrade
+Step 1: Open your terminal.
 
-Run the same install script in-place to upgrade. Your data and config are preserved. Upgrades to the latest version by default:
+F**or macOS, enter the following installation command**
+```bash
+bash <(curl -sSL https://higress.ai/hiclaw/install.sh)
+```
+
+**For Windows (requires PowerShell 7+), enter the corresponding command below**
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://higress.ai/hiclaw/install.ps1'))
+```
+Here, we will input the installation command for macOS.
+
+Step 2: Select a language. Here, we choose Chinese.
+
+Step 3: Select the installation mode. Here, we choose Alibaba Cloud Bailian Quick Install.
+
+Step 4: Select the Large Language Model (LLM) provider. We select Bailian. You can also connect to other model services supporting the OpenAPI protocol. Please note that the Anthropic protocol is not yet supported.
+
+Step 5: Select the model interface. The Bailian Coding Plan interface differs from the general Bailian interface; here, we select the Coding Plan interface.[Bailian Coding Plan](https://modelstudio.console.alibabacloud.com/ap-southeast-1/?source_channel=Bk5s5ordYR&tab=coding-plan#/efm/index).
+
+Step 6: Select the model series. If you chose the Bailian Coding Plan in Step 5, the default model is qwen3.5-plus. Once the Matrix room is established, you can send commands to the Manager to switch to other models as needed.
+
+Step 7: Begin testing API connectivity. If the test fails, please check your model API configuration (e.g., ensure the key is pasted completely without extra spaces). If necessary, consult your model provider.
+
+Step 8: Select the network access mode. Here, we choose Local Use Only. If you wish to allow external access (e.g., to create a Matrix room with colleagues), select Allow External Access. After making your selection, press Enter. The system will use default values for the port number, gateway host port, Higress console host port, Matrix domain, Element Web direct access port, and file system domain.
+
+Step 9: For configurations regarding GitHub Integration, Skills Registry, Data Persistence, Docker Volumes, and Manager Workspace, simply press Enter to accept the default configurations.
+
+Step 10: Wait for the installation to complete.Upon completion, a login password will be automatically generated.
+- To access and use the system via mobile devices, you will need an US-region Apple ID (or equivalent region setting) to download FluffyChat or Element Mobile. (These specific IM clients are used because they support the Matrix protocol).
+- After downloading, connect to your Matrix server address to manage your Agent team anytime, anywhere.
+
+Step 11: In your web browser, navigate to http://127.0.0.1:18088/#/login. Log in to Element using your username and password. You are now ready to start using "Claw"! Tell the Manager to create Workers and assign tasks.
+
+
+## Upgrade
+
+To update to a new version, simply execute the following command in your terminal to perform an in-place upgrade to the latest version by default.
+- In-place Upgrade: Preserves all existing data and configurations.
+- Fresh Re-installation: Will delete all data.
 
 ```bash
 bash <(curl -sSL https://higress.ai/hiclaw/install.sh)
@@ -269,7 +302,7 @@ make help  # All available targets
 - WeChat Group — scan to join:
 
 <p align="center">
-  <img src="https://img.alicdn.com/imgextra/i1/O1CN01tTIeig1tQQKXGHvHV_!!6000000005896-2-tps-738-730.png" width="200" alt="WeChat Group" />
+  <img src="https://img.alicdn.com/imgextra/i2/O1CN01ga2NAM1QOTnByKW4l_!!6000000001966-2-tps-772-742.png" width="200" alt="WeChat Group" />
 </p>
 
 ## License
