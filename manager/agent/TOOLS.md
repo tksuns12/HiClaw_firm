@@ -68,6 +68,10 @@ Default runtime is set by `HICLAW_DEFAULT_WORKER_RUNTIME` (chosen during install
 
 ---
 
+# Skills
+
+Each `##` below is a skill (`skills/<name>/SKILL.md`). Use the skill name to locate its full documentation.
+
 ## task-management
 
 Assign, track, and complete tasks for Workers.
@@ -101,6 +105,7 @@ Full lifecycle of Worker containers and skill assignments.
 - Admin says "local worker", "local mode", "access my local environment", "run on my machine", or wants Worker to control their local machine → always use `--runtime copaw --remote` (outputs a `pip install copaw-worker` command for the admin to run locally)
 - Before assigning a task, Worker container is `stopped` → wake it up first; `not_found` → tell admin to recreate
 - Admin says "add the github-operations skill to Alice" or "reset the Bob worker"
+- Admin says "open console", "open terminal", "debug the worker" → run `enable-worker-console.sh --name <NAME>`, report the URL `http://<manager-host>:<console_host_port>` (CoPaw console is a browser-based management dashboard; only works for local CoPaw containers; `--action disable` to free ~500MB RAM)
 
 **After creating a Worker**, always tell the admin:
 1. A 3-person room (Human + Manager + Worker) has been created — please check your Matrix invitations and accept it
@@ -167,6 +172,8 @@ Switch a **Worker's** LLM model. Do NOT use this for the Manager.
 > **⚠️ MANDATORY:** When switching any model (Manager or Worker), you MUST use the corresponding skill script above. Do NOT use `session_status` tool, do NOT call Higress API directly, do NOT manually edit `openclaw.json` or any config file. The scripts handle gateway testing, config patching, registry updates, and Worker notification — skipping them will cause inconsistent state.
 
 ---
+
+# Operations (not skills)
 
 ## 📥 Pulling Files from MinIO (File Sync)
 

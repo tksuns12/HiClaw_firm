@@ -360,7 +360,11 @@ Provide the `install_cmd` value **verbatim in a code block** to the admin — do
 
 ## CoPaw Console Management
 
-CoPaw Workers are created without the web console by default (~500MB saved). Enable or disable it on demand:
+The CoPaw console is a browser-based management dashboard for the CoPaw Worker — the admin can view Worker status, logs, configuration, and other operational details from a single web page.
+
+CoPaw Workers are created without the console by default to save ~500MB RAM. Enable it on demand when the admin asks to "open console", "open terminal", "debug the worker", "access the worker shell", or similar.
+
+> **Only local CoPaw containers support this.** Remote (`--remote`) workers and openclaw workers do not — tell the admin to SSH into the target machine directly.
 
 ```bash
 # Enable — recreates container with console; result JSON contains console_host_port
@@ -370,7 +374,7 @@ bash /opt/hiclaw/agent/skills/worker-management/scripts/enable-worker-console.sh
 bash /opt/hiclaw/agent/skills/worker-management/scripts/enable-worker-console.sh --name <WORKER_NAME> --action disable
 ```
 
-After enabling, read `console_host_port` from the JSON result and report the access URL to the admin: `http://<manager-host>:<console_host_port>`.
+After enabling, read `console_host_port` from the JSON result and report the access URL to the admin: `http://<manager-host>:<console_host_port>`. Remind the admin to disable the console when done to reclaim memory.
 
 ## Enable Peer Mentions Between Workers
 

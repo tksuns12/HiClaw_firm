@@ -25,3 +25,4 @@ Record image-affecting changes to `manager/`, `worker/`, `openclaw-base/` here b
 - fix(install): upgrade now pulls both openclaw and copaw worker images when the other runtime's image exists locally, ensuring all worker containers get updated regardless of the selected default runtime
 - fix(manager): add cooldown (default 1h) to worker builtin-upgrade notification — prevents repeated Matrix messages wasting Worker tokens when Manager crash-loops
 - fix(copaw): deduplicate customized skills that shadow builtins after upgrade — removes stale customized_skills/ copies when a newer CoPaw version ships the same skill as a builtin, preventing duplicate skill entries in the UI
+- docs(manager): improve CoPaw console documentation in SKILL.md — add trigger keywords, description, and scope notes; restructure TOOLS.md to clearly separate Skills vs Operations sections
