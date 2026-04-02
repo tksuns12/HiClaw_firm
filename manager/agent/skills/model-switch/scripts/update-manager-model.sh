@@ -87,7 +87,7 @@ fi
 case "${MODEL_NAME}" in
     gpt-5.4)
         CTX=1050000; MAX=128000 ;;
-    gpt-5.3-codex|gpt-5-mini|gpt-5-nano)
+    gpt-5.1-codex|gpt-5.1-codex-max|gpt-5.1-codex-mini|gpt-5.2|gpt-5.2-codex|gpt-5.3-codex|gpt-5.4-mini|gpt-5-mini|gpt-5-nano)
         CTX=400000; MAX=128000 ;;
     claude-opus-4-6)
         CTX=1000000; MAX=128000 ;;
@@ -112,7 +112,7 @@ fi
 
 # Resolve input modalities: only vision-capable models get "image"
 case "${MODEL_NAME}" in
-    gpt-5.4|gpt-5.3-codex|gpt-5-mini|gpt-5-nano|claude-opus-4-6|claude-sonnet-4-6|claude-haiku-4-5|qwen3.5-plus|kimi-k2.5)
+    gpt-5.1-codex|gpt-5.1-codex-max|gpt-5.1-codex-mini|gpt-5.2|gpt-5.2-codex|gpt-5.3-codex|gpt-5.4|gpt-5.4-mini|gpt-5-mini|gpt-5-nano|claude-opus-4-6|claude-sonnet-4-6|claude-haiku-4-5|qwen3.5-plus|kimi-k2.5)
         INPUT='["text", "image"]' ;;
     *)
         INPUT='["text"]' ;;
