@@ -38,15 +38,21 @@
   "models": {
     "mode": "merge",
     "providers": {
-      "hiclaw-gateway": {
-        "baseUrl": "http://${HICLAW_AI_GATEWAY_DOMAIN}:8080/v1",
-        "apiKey": "${MANAGER_GATEWAY_KEY}",
-        "api": "openai-completions",
-        "models": [
-          { "id": "gpt-5.4",           "name": "gpt-5.4",           "reasoning": true,  "contextWindow": 1050000, "maxTokens": 128000, "input": ["text", "image"] },
-          { "id": "gpt-5.3-codex",     "name": "gpt-5.3-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
-          { "id": "gpt-5-mini",        "name": "gpt-5-mini",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
-          { "id": "gpt-5-nano",        "name": "gpt-5-nano",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+        "hiclaw-gateway": {
+          "baseUrl": "http://${HICLAW_AI_GATEWAY_DOMAIN}:8080/v1",
+          "apiKey": "${MANAGER_GATEWAY_KEY}",
+          "api": "openai-completions",
+          "models": [
+            { "id": "gpt-5.4",           "name": "gpt-5.4",           "reasoning": true,  "contextWindow": 1050000, "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.4-mini",      "name": "gpt-5.4-mini",      "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.3-codex",     "name": "gpt-5.3-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.2",           "name": "gpt-5.2",           "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.2-codex",     "name": "gpt-5.2-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.1-codex",     "name": "gpt-5.1-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.1-codex-mini", "name": "gpt-5.1-codex-mini", "reasoning": true, "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5.1-codex-max", "name": "gpt-5.1-codex-max", "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5-mini",        "name": "gpt-5-mini",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+            { "id": "gpt-5-nano",        "name": "gpt-5-nano",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
           { "id": "claude-opus-4-6",   "name": "claude-opus-4-6",   "reasoning": true,  "contextWindow": 1000000, "maxTokens": 128000, "input": ["text", "image"] },
           { "id": "claude-sonnet-4-6", "name": "claude-sonnet-4-6", "reasoning": true,  "contextWindow": 1000000, "maxTokens": 64000,  "input": ["text", "image"] },
           { "id": "claude-haiku-4-5",  "name": "claude-haiku-4-5",  "reasoning": true,  "contextWindow": 200000,  "maxTokens": 64000,  "input": ["text", "image"] },
@@ -72,7 +78,13 @@
       },
       "models": {
         "hiclaw-gateway/gpt-5.4":           { "alias": "gpt-5.4" },
+        "hiclaw-gateway/gpt-5.4-mini":      { "alias": "gpt-5.4-mini" },
         "hiclaw-gateway/gpt-5.3-codex":     { "alias": "gpt-5.3-codex" },
+        "hiclaw-gateway/gpt-5.2":           { "alias": "gpt-5.2" },
+        "hiclaw-gateway/gpt-5.2-codex":     { "alias": "gpt-5.2-codex" },
+        "hiclaw-gateway/gpt-5.1-codex":     { "alias": "gpt-5.1-codex" },
+        "hiclaw-gateway/gpt-5.1-codex-mini": { "alias": "gpt-5.1-codex-mini" },
+        "hiclaw-gateway/gpt-5.1-codex-max": { "alias": "gpt-5.1-codex-max" },
         "hiclaw-gateway/gpt-5-mini":        { "alias": "gpt-5-mini" },
         "hiclaw-gateway/gpt-5-nano":        { "alias": "gpt-5-nano" },
         "hiclaw-gateway/claude-opus-4-6":   { "alias": "claude-opus-4-6" },

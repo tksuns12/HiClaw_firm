@@ -1,6 +1,12 @@
 [
   { "id": "gpt-5.4",           "name": "gpt-5.4",           "reasoning": true,  "contextWindow": 1050000, "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.4-mini",      "name": "gpt-5.4-mini",      "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
   { "id": "gpt-5.3-codex",     "name": "gpt-5.3-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.2",           "name": "gpt-5.2",           "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.2-codex",     "name": "gpt-5.2-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.1-codex",     "name": "gpt-5.1-codex",     "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.1-codex-mini", "name": "gpt-5.1-codex-mini", "reasoning": true, "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
+  { "id": "gpt-5.1-codex-max", "name": "gpt-5.1-codex-max", "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
   { "id": "gpt-5-mini",        "name": "gpt-5-mini",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
   { "id": "gpt-5-nano",        "name": "gpt-5-nano",        "reasoning": true,  "contextWindow": 400000,  "maxTokens": 128000, "input": ["text", "image"] },
   { "id": "claude-opus-4-6",   "name": "claude-opus-4-6",   "reasoning": true,  "contextWindow": 1000000, "maxTokens": 128000, "input": ["text", "image"] },
