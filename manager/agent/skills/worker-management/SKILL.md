@@ -15,7 +15,7 @@ mkdir -p /root/hiclaw-fs/agents/<NAME>
 # 2. Run create script
 bash /opt/hiclaw/agent/skills/worker-management/scripts/create-worker.sh \
   --name <NAME> --skills <skill1>,<skill2>
-# Add --runtime copaw for Python workers
+# Omit --runtime to use the default Worker runtime (now CoPaw)
 # Add --remote for admin-managed deployment
 ```
 

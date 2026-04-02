@@ -1863,7 +1863,7 @@ step_runtime() {
     echo "  2) $(msg worker_runtime.copaw)"
     echo ""
     if [ "${HICLAW_NON_INTERACTIVE}" = "1" ]; then
-        HICLAW_DEFAULT_WORKER_RUNTIME="${HICLAW_DEFAULT_WORKER_RUNTIME:-openclaw}"
+        HICLAW_DEFAULT_WORKER_RUNTIME="${HICLAW_DEFAULT_WORKER_RUNTIME:-copaw}"
     elif [ "${HICLAW_UPGRADE}" = "1" ] && [ -n "${HICLAW_DEFAULT_WORKER_RUNTIME}" ]; then
         log "$(msg prompt.upgrade_keep "$(msg worker_runtime.title_short)" "${HICLAW_DEFAULT_WORKER_RUNTIME}")"
         local _runtime_choice
@@ -1871,18 +1871,18 @@ step_runtime() {
         if [ "${_runtime_choice}" = "b" ]; then STEP_RESULT="back"; return 0; fi
         if [ -n "${_runtime_choice}" ]; then
             case "${_runtime_choice}" in
-                2) HICLAW_DEFAULT_WORKER_RUNTIME="copaw" ;;
-                *) HICLAW_DEFAULT_WORKER_RUNTIME="openclaw" ;;
+                1) HICLAW_DEFAULT_WORKER_RUNTIME="openclaw" ;;
+                *) HICLAW_DEFAULT_WORKER_RUNTIME="copaw" ;;
             esac
         fi
     elif [ -z "${HICLAW_DEFAULT_WORKER_RUNTIME+x}" ]; then
         local _runtime_choice
         read -e -p "$(msg worker_runtime.choice): " _runtime_choice
         if [ "${_runtime_choice}" = "b" ]; then STEP_RESULT="back"; return 0; fi
-        _runtime_choice="${_runtime_choice:-1}"
+        _runtime_choice="${_runtime_choice:-2}"
         case "${_runtime_choice}" in
-            2) HICLAW_DEFAULT_WORKER_RUNTIME="copaw" ;;
-            *) HICLAW_DEFAULT_WORKER_RUNTIME="openclaw" ;;
+            1) HICLAW_DEFAULT_WORKER_RUNTIME="openclaw" ;;
+            *) HICLAW_DEFAULT_WORKER_RUNTIME="copaw" ;;
         esac
     fi
     export HICLAW_DEFAULT_WORKER_RUNTIME
@@ -2169,7 +2169,7 @@ install_manager() {
     mkdir -p "${HICLAW_WORKSPACE_DIR}"
     HICLAW_MANAGER_RUNTIME="${HICLAW_MANAGER_RUNTIME:-openclaw}"
     export HICLAW_MANAGER_RUNTIME
-    HICLAW_DEFAULT_WORKER_RUNTIME="${HICLAW_DEFAULT_WORKER_RUNTIME:-openclaw}"
+    HICLAW_DEFAULT_WORKER_RUNTIME="${HICLAW_DEFAULT_WORKER_RUNTIME:-copaw}"
     HICLAW_MATRIX_E2EE="${HICLAW_MATRIX_E2EE:-0}"
     export HICLAW_MATRIX_E2EE
     HICLAW_WORKER_IDLE_TIMEOUT="${HICLAW_WORKER_IDLE_TIMEOUT:-720}"
@@ -2267,7 +2267,7 @@ HICLAW_WORKER_IMAGE=${WORKER_IMAGE}
 HICLAW_COPAW_WORKER_IMAGE=${COPAW_WORKER_IMAGE}
 
 # Default Worker runtime (openclaw | copaw)
-HICLAW_DEFAULT_WORKER_RUNTIME=${HICLAW_DEFAULT_WORKER_RUNTIME:-openclaw}
+HICLAW_DEFAULT_WORKER_RUNTIME=${HICLAW_DEFAULT_WORKER_RUNTIME:-copaw}
 
 # Matrix E2EE (0=disabled, 1=enabled; default: 0)
 HICLAW_MATRIX_E2EE=${HICLAW_MATRIX_E2EE:-0}

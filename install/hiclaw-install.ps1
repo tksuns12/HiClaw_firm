@@ -1720,13 +1720,13 @@ function Step-Runtime {
     Write-Host ""
 
     if ($script:HICLAW_NON_INTERACTIVE) {
-        $script:config.DEFAULT_WORKER_RUNTIME = if ($env:HICLAW_DEFAULT_WORKER_RUNTIME) { $env:HICLAW_DEFAULT_WORKER_RUNTIME } else { "openclaw" }
+        $script:config.DEFAULT_WORKER_RUNTIME = if ($env:HICLAW_DEFAULT_WORKER_RUNTIME) { $env:HICLAW_DEFAULT_WORKER_RUNTIME } else { "copaw" }
     } elseif ($script:HICLAW_UPGRADE -and $env:HICLAW_DEFAULT_WORKER_RUNTIME) {
         Write-Log (Get-Msg "prompt.upgrade_keep" -f (Get-Msg "worker_runtime.title_short"), $env:HICLAW_DEFAULT_WORKER_RUNTIME)
         $rtChoice = Read-Host (Get-Msg "worker_runtime.choice")
         if ($rtChoice -eq "b") { $script:StepResult = "back"; return }
         if ($rtChoice) {
-            $script:config.DEFAULT_WORKER_RUNTIME = if ($rtChoice -eq "2") { "copaw" } else { "openclaw" }
+            $script:config.DEFAULT_WORKER_RUNTIME = if ($rtChoice -eq "1") { "openclaw" } else { "copaw" }
         } else {
             $script:config.DEFAULT_WORKER_RUNTIME = $env:HICLAW_DEFAULT_WORKER_RUNTIME
         }
@@ -1735,8 +1735,8 @@ function Step-Runtime {
     } else {
         $rtChoice = Read-Host (Get-Msg "worker_runtime.choice")
         if ($rtChoice -eq "b") { $script:StepResult = "back"; return }
-        $rtChoice = if ($rtChoice) { $rtChoice } else { "1" }
-        $script:config.DEFAULT_WORKER_RUNTIME = if ($rtChoice -eq "2") { "copaw" } else { "openclaw" }
+        $rtChoice = if ($rtChoice) { $rtChoice } else { "2" }
+        $script:config.DEFAULT_WORKER_RUNTIME = if ($rtChoice -eq "1") { "openclaw" } else { "copaw" }
     }
     Write-Log (Get-Msg "worker_runtime.selected" -f $script:config.DEFAULT_WORKER_RUNTIME)
 }
@@ -2073,7 +2073,7 @@ function Install-Manager {
         Write-Log (Get-Msg "workspace.dir_label" -f $script:config.WORKSPACE_DIR)
     }
     if (-not $script:config.DEFAULT_WORKER_RUNTIME) {
-        $script:config.DEFAULT_WORKER_RUNTIME = if ($env:HICLAW_DEFAULT_WORKER_RUNTIME) { $env:HICLAW_DEFAULT_WORKER_RUNTIME } else { "openclaw" }
+        $script:config.DEFAULT_WORKER_RUNTIME = if ($env:HICLAW_DEFAULT_WORKER_RUNTIME) { $env:HICLAW_DEFAULT_WORKER_RUNTIME } else { "copaw" }
         Write-Log (Get-Msg "worker_runtime.selected" -f $script:config.DEFAULT_WORKER_RUNTIME)
     }
     if (-not $script:config.MATRIX_E2EE) {

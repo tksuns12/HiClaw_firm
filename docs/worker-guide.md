@@ -22,6 +22,8 @@ If the Manager has access to the host's container runtime socket (default when u
 2. Manager creates all infrastructure and starts the container automatically
 3. No manual steps needed
 
+New Workers now default to the CoPaw runtime unless you explicitly request OpenClaw / container isolation.
+
 ### Method 2: Docker Run Command (for Remote Deployment)
 
 If the Manager doesn't have socket access, it will reply with a `docker run` command:

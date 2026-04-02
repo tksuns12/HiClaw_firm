@@ -8,7 +8,10 @@ If the admin asks you to import an existing Worker template, search a registry f
 |------------|---------|-------|
 | "copaw", "Python worker", "pip worker", "host worker" | `copaw` | |
 | "local worker", "local mode", "access my local environment", "run on my machine" | `copaw` | `--remote` |
-| "openclaw", "container worker", "docker worker", or none of the above | `openclaw` (default, uses `${HICLAW_DEFAULT_WORKER_RUNTIME}`) | |
+| "openclaw", "container worker", "docker worker", or requests that explicitly need container isolation | `openclaw` | |
+| None of the above | `${HICLAW_DEFAULT_WORKER_RUNTIME}` (defaults to `copaw`) | |
+
+If the admin does not specify a runtime, use `${HICLAW_DEFAULT_WORKER_RUNTIME}`. New installations now default that value to `copaw`.
 
 When in doubt, ask: "Should this be a copaw (Python, ~150MB RAM) worker or an openclaw (Node.js, ~500MB RAM) worker?"
 

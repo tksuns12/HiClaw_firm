@@ -68,6 +68,8 @@ In Element Web, start a direct message (DM) with the `manager` user.
 Send:
 > Please create a new Worker named alice for frontend development tasks. She should have access to GitHub MCP.
 
+> New Workers now default to the CoPaw runtime unless you explicitly ask for OpenClaw / container mode.
+
 **Option B: Via CLI (make replay)**
 
 ```bash

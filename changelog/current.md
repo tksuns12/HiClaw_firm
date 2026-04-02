@@ -32,6 +32,8 @@ Record image-affecting changes to `manager/`, `worker/`, `openclaw-base/` here b
 
 - **Market Worker Import Flow** — Refined market worker import behaviour for cleaner path handling and clearer completion.
 
+- **CoPaw as the Default Worker Runtime** — Changed the default Worker runtime from OpenClaw to CoPaw across install-time defaults, Manager worker creation fallbacks, and related guidance/docs; explicit OpenClaw / container requests still override the default.
+
 **Bug Fixes**
 
 - Fixed stale local declarative config after delete in embedded mode — `start-mc-mirror.sh` now mirrors `hiclaw-config/` with `--remove`, so deleting a resource removes the corresponding local watched YAML instead of leaving stale files under `/root/hiclaw-fs/hiclaw-config/`.

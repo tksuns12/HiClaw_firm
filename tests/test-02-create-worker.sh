@@ -99,6 +99,9 @@ higress_login "${TEST_ADMIN_USER}" "${TEST_ADMIN_PASSWORD}" > /dev/null
 CONSUMERS=$(higress_get_consumers)
 assert_contains "${CONSUMERS}" "worker-alice" "Higress consumer 'worker-alice' exists"
 
+ALICE_RUNTIME=$(exec_in_manager jq -r '.workers["alice"].runtime // empty' /root/manager-workspace/workers-registry.json 2>/dev/null)
+assert_eq "copaw" "${ALICE_RUNTIME}" "New Worker defaults to CoPaw runtime"
+
 # Check MinIO files
 minio_setup
 minio_wait_for_file "agents/alice/SOUL.md" 60
