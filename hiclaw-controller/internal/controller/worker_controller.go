@@ -26,6 +26,7 @@ type WorkerReconciler struct {
 	client.Client
 	Executor *executor.Shell
 	Packages *executor.PackageResolver
+	Higress  *HigressClient
 
 	// lastSpec tracks the last-processed spec per worker name (in memory).
 	// Used by handleUpdate to detect real spec changes via DeepEqual.
@@ -131,7 +132,7 @@ func (r *WorkerReconciler) handleCreate(ctx context.Context, w *v1beta1.Worker) 
 			return reconcile.Result{RequeueAfter: time.Minute}, err
 		}
 		if extractedDir != "" {
-			if err := r.Packages.DeployToMinIO(ctx, extractedDir, w.Name); err != nil {
+			if err := r.Packages.DeployToMinIO(ctx, extractedDir, w.Name, false); err != nil {
 				_ = r.Get(ctx, client.ObjectKeyFromObject(w), w)
 				w.Status.Phase = "Failed"
 				w.Status.Message = fmt.Sprintf("package deploy failed: %v", err)
@@ -205,6 +206,16 @@ func (r *WorkerReconciler) handleCreate(ctx context.Context, w *v1beta1.Worker) 
 	// Record the spec we just processed (in memory, not annotation)
 	r.setLastSpec(w.Name, w.Spec)
 
+	// Expose ports via Higress gateway
+	var exposedPorts []v1beta1.ExposedPortStatus
+	if len(w.Spec.Expose) > 0 {
+		var exposeErr error
+		exposedPorts, exposeErr = ReconcileExpose(r.Higress, w.Name, w.Spec.Expose, nil)
+		if exposeErr != nil {
+			logger.Error(exposeErr, "failed to expose ports (non-fatal)", "name", w.Name)
+		}
+	}
+
 	// Re-read object before status update to avoid stale resourceVersion.
 	// The file-watcher may have updated the spec while create-worker.sh
 	// was running (~30s), bumping the resourceVersion.
@@ -215,6 +226,7 @@ func (r *WorkerReconciler) handleCreate(ctx context.Context, w *v1beta1.Worker) 
 	w.Status.MatrixUserID = result.MatrixUserID
 	w.Status.RoomID = result.RoomID
 	w.Status.Message = ""
+	w.Status.ExposedPorts = exposedPorts
 	if err := r.Status().Update(ctx, w); err != nil {
 		logger.Error(err, "failed to update status after create (non-fatal)", "name", w.Name)
 	}
@@ -255,8 +267,16 @@ func (r *WorkerReconciler) handleUpdate(ctx context.Context, w *v1beta1.Worker) 
 			return reconcile.Result{RequeueAfter: time.Minute}, err
 		}
 		if extractedDir != "" {
+			// Deploy package files to local + MinIO atomically (excludes memory to preserve existing state)
+			if err := r.Packages.DeployToMinIO(ctx, extractedDir, w.Name, true); err != nil {
+				_ = r.Get(ctx, client.ObjectKeyFromObject(w), w)
+				w.Status.Phase = "Failed"
+				w.Status.Message = fmt.Sprintf("package deploy failed: %v", err)
+				r.Status().Update(ctx, w)
+				return reconcile.Result{RequeueAfter: time.Minute}, err
+			}
 			packageDir = extractedDir
-			logger.Info("package resolved for update", "name", w.Name, "dir", extractedDir)
+			logger.Info("package deployed for update", "name", w.Name, "dir", extractedDir)
 		}
 	}
 
@@ -307,10 +327,17 @@ func (r *WorkerReconciler) handleUpdate(ctx context.Context, w *v1beta1.Worker) 
 	// Record the spec we just processed
 	r.setLastSpec(w.Name, w.Spec)
 
+	// Reconcile exposed ports
+	exposedPorts, exposeErr := ReconcileExpose(r.Higress, w.Name, w.Spec.Expose, w.Status.ExposedPorts)
+	if exposeErr != nil {
+		logger.Error(exposeErr, "failed to reconcile exposed ports (non-fatal)", "name", w.Name)
+	}
+
 	// Re-read before status update
 	_ = r.Get(ctx, client.ObjectKeyFromObject(w), w)
 	w.Status.Phase = "Running"
 	w.Status.Message = "Configuration updated (memory preserved, skills merged)"
+	w.Status.ExposedPorts = exposedPorts
 	if err := r.Status().Update(ctx, w); err != nil {
 		logger.Error(err, "failed to update status after update (non-fatal)", "name", w.Name)
 	}
@@ -324,6 +351,24 @@ func (r *WorkerReconciler) handleDelete(ctx context.Context, w *v1beta1.Worker) 
 	logger.Info("deleting worker", "name", w.Name)
 
 	r.deleteLastSpec(w.Name)
+
+	// Clean up exposed ports from Higress
+	// Use both status (persisted) and spec (current) to ensure cleanup
+	currentExposed := w.Status.ExposedPorts
+	if len(currentExposed) == 0 && len(w.Spec.Expose) > 0 {
+		// Status wasn't persisted; derive from spec
+		for _, ep := range w.Spec.Expose {
+			currentExposed = append(currentExposed, v1beta1.ExposedPortStatus{
+				Port:   ep.Port,
+				Domain: domainForExpose(w.Name, ep.Port),
+			})
+		}
+	}
+	if len(currentExposed) > 0 {
+		if _, err := ReconcileExpose(r.Higress, w.Name, nil, currentExposed); err != nil {
+			logger.Error(err, "failed to clean up exposed ports (non-fatal)", "name", w.Name)
+		}
+	}
 
 	// Delete container via lifecycle script
 	_, err := r.Executor.RunSimple(ctx,

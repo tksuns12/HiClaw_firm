@@ -331,6 +331,7 @@ ifeq ($(IS_PODMAN),1)
 		echo "  -> Building Manager CoPaw for $(plat)..." && \
 		podman build --platform $(plat) \
 			$(REGISTRY_ARG) $(BUILTIN_VERSION_ARG) $(SHARED_LIB_CTX) $(COPAW_WORKER_CTX) $(DOCKER_BUILD_ARGS) \
+			--build-arg HICLAW_CONTROLLER_IMAGE=$(CONTROLLER_TAG) \
 			-f manager/Dockerfile.copaw \
 			--manifest $(MANAGER_COPAW_TAG) \
 			./manager/ && ) true
@@ -343,6 +344,7 @@ else
 		--builder $(BUILDX_BUILDER) \
 		--platform $(MULTIARCH_PLATFORMS) \
 		$(REGISTRY_ARG) $(BUILTIN_VERSION_ARG) $(SHARED_LIB_CTX) $(COPAW_WORKER_CTX) $(DOCKER_BUILD_ARGS) \
+		--build-arg HICLAW_CONTROLLER_IMAGE=$(CONTROLLER_TAG) \
 		-f manager/Dockerfile.copaw \
 		-t $(MANAGER_COPAW_TAG) \
 		$(if $(PUSH_LATEST),-t $(MANAGER_COPAW_IMAGE):latest) \
