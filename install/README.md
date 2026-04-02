@@ -30,7 +30,7 @@ Fast installation with Alibaba Cloud Bailian as the default LLM provider. Just p
 ### Manual
 
 Customize each option:
-- LLM Provider (Alibaba Cloud Bailian or OpenAI-compatible)
+- LLM Provider (Alibaba Cloud Bailian, OpenAI-compatible, or OpenAI Codex OAuth)
 - Admin credentials
 - Port configuration
 - Domain names
@@ -56,7 +56,7 @@ Customize each option:
 ```
 
 Interactive prompts will ask for:
-- LLM Provider and API Key
+- LLM Provider and API Key, or browser login for OpenAI Codex OAuth
 - Admin credentials
 - Domain names (optional, defaults to `*-local.hiclaw.io`)
 - GitHub PAT (optional)
@@ -137,9 +137,9 @@ $env:HICLAW_LLM_API_KEY = "your-api-key"
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HICLAW_NON_INTERACTIVE` | Skip all prompts | `0` |
-| `HICLAW_LLM_PROVIDER` | LLM provider (`qwen` or `openai-compat`) | `qwen` |
+| `HICLAW_LLM_PROVIDER` | LLM provider (`qwen`, `openai-compat`, or `openai-codex`) | `qwen` |
 | `HICLAW_DEFAULT_MODEL` | Default model ID | `qwen3.5-plus` |
-| `HICLAW_LLM_API_KEY` | LLM API key | *(required)* |
+| `HICLAW_LLM_API_KEY` | LLM API key for API-key providers | *(required for API-key providers)* |
 | `HICLAW_ADMIN_USER` | Admin username | `admin` |
 | `HICLAW_ADMIN_PASSWORD` | Admin password | *(auto-generated)* |
 | `HICLAW_PORT_GATEWAY` | Gateway port | `18080` |
@@ -151,6 +151,12 @@ $env:HICLAW_LLM_API_KEY = "your-api-key"
 | `HICLAW_REGISTRY` | Image registry | *(auto-detected by timezone)* |
 
 ## Platform Notes
+
+### OpenAI Codex OAuth
+
+- `openai-codex` currently supports interactive browser login only during installation.
+- Non-interactive installs should use `qwen` or `openai-compat` instead.
+- After browser login succeeds, the installer stores the resulting refresh token in the Manager env file for runtime use.
 
 ### Windows
 

@@ -369,8 +369,10 @@ msg() {
         "llm.provider.alibaba.en") text="  1) Alibaba Cloud CodingPlan  - Optimized for coding tasks (recommended)" ;;
         "llm.provider.openai_compat.zh") text="  2) OpenAI 兼容 API  - 自定义 Base URL（OpenAI、DeepSeek 等）" ;;
         "llm.provider.openai_compat.en") text="  2) OpenAI-compatible API  - Custom Base URL (OpenAI, DeepSeek, etc.)" ;;
-        "llm.provider.select.zh") text="选择提供商 [1/2]" ;;
-        "llm.provider.select.en") text="Select provider [1/2]" ;;
+        "llm.provider.openai_codex.zh") text="  3) ChatGPT Plus/Pro Codex OAuth  - 使用 OpenAI 订阅登录" ;;
+        "llm.provider.openai_codex.en") text="  3) ChatGPT Plus/Pro Codex OAuth  - Sign in with your OpenAI subscription" ;;
+        "llm.provider.select.zh") text="选择提供商 [1/2/3]" ;;
+        "llm.provider.select.en") text="Select provider [1/2/3]" ;;
         "llm.alibaba.models_title.zh") text="选择百炼模型系列:" ;;
         "llm.alibaba.models_title.en") text="Select Bailian model series:" ;;
         "llm.alibaba.model.codingplan.zh") text="  1) CodingPlan  - 专为编程任务优化（推荐）" ;;
@@ -397,14 +399,18 @@ msg() {
         "llm.provider.selected_qwen.en") text="  Provider: Alibaba Cloud Bailian" ;;
         "llm.provider.selected_openai.zh") text="  提供商: %s（OpenAI 兼容）" ;;
         "llm.provider.selected_openai.en") text="  Provider: %s (OpenAI-compatible)" ;;
-        "llm.provider.invalid.zh") text="无效选择: %s（请输入 1 或 2）" ;;
-        "llm.provider.invalid.en") text="Invalid choice: %s (please enter 1 or 2)" ;;
+        "llm.provider.selected_openai_codex.zh") text="  提供商: OpenAI Codex OAuth（ChatGPT 订阅）" ;;
+        "llm.provider.selected_openai_codex.en") text="  Provider: OpenAI Codex OAuth (ChatGPT subscription)" ;;
+        "llm.provider.invalid.zh") text="无效选择: %s（请输入 1、2 或 3）" ;;
+        "llm.provider.invalid.en") text="Invalid choice: %s (please enter 1, 2, or 3)" ;;
         "llm.qwen.model_prompt.zh") text="默认模型 ID [qwen3.5-plus]" ;;
         "llm.qwen.model_prompt.en") text="Default Model ID [qwen3.5-plus]" ;;
         "llm.openai.base_url_prompt.zh") text="Base URL（例如 https://api.openai.com/v1）" ;;
         "llm.openai.base_url_prompt.en") text="Base URL (e.g., https://api.openai.com/v1)" ;;
         "llm.openai.model_prompt.zh") text="默认模型 ID [gpt-5.4]" ;;
         "llm.openai.model_prompt.en") text="Default Model ID [gpt-5.4]" ;;
+        "llm.codex.model_prompt.zh") text="默认 Codex 模型 ID [gpt-5.4]" ;;
+        "llm.codex.model_prompt.en") text="Default Codex model ID [gpt-5.4]" ;;
         "llm.openai.base_url_label.zh") text="  Base URL: %s" ;;
         "llm.openai.base_url_label.en") text="  Base URL: %s" ;;
         # --- Custom model parameters ---
@@ -926,7 +932,7 @@ resolve_docker_proxy_image() {
 # ============================================================
 # Known models list — used to detect custom models during install
 # ============================================================
-KNOWN_MODELS="gpt-5.4 gpt-5.3-codex gpt-5-mini gpt-5-nano claude-opus-4-6 claude-sonnet-4-6 claude-haiku-4-5 qwen3.5-plus deepseek-chat deepseek-reasoner kimi-k2.5 glm-5 MiniMax-M2.7 MiniMax-M2.7-highspeed MiniMax-M2.5"
+KNOWN_MODELS="gpt-5.4 gpt-5.4-mini gpt-5.3-codex gpt-5.2 gpt-5.2-codex gpt-5.1-codex gpt-5.1-codex-mini gpt-5.1-codex-max gpt-5-mini gpt-5-nano claude-opus-4-6 claude-sonnet-4-6 claude-haiku-4-5 qwen3.5-plus deepseek-chat deepseek-reasoner kimi-k2.5 glm-5 MiniMax-M2.7 MiniMax-M2.7-highspeed MiniMax-M2.5"
 
 is_known_model() {
     local model="$1"
@@ -1292,8 +1298,8 @@ clear_step_vars() {
         step_version) unset HICLAW_VERSION ;;
         step_existing) unset HICLAW_UPGRADE UPGRADE_EXISTING_WORKERS ;;
         step_llm)
-            unset HICLAW_LLM_PROVIDER HICLAW_DEFAULT_MODEL HICLAW_OPENAI_BASE_URL
-            unset HICLAW_LLM_API_KEY HICLAW_MODEL_CONTEXT_WINDOW HICLAW_MODEL_MAX_TOKENS
+    unset HICLAW_LLM_PROVIDER HICLAW_DEFAULT_MODEL HICLAW_OPENAI_BASE_URL HICLAW_OPENAI_CODEX_REFRESH_TOKEN
+    unset HICLAW_LLM_API_KEY HICLAW_MODEL_CONTEXT_WINDOW HICLAW_MODEL_MAX_TOKENS
             unset HICLAW_MODEL_REASONING HICLAW_MODEL_VISION
             ;;
         step_admin)   unset HICLAW_ADMIN_USER HICLAW_ADMIN_PASSWORD ;;
@@ -1555,6 +1561,18 @@ step_existing() {
 step_llm() {
     log "$(msg llm.title)"
     if [ "${HICLAW_NON_INTERACTIVE}" = "1" ]; then
+        if [ "${HICLAW_LLM_PROVIDER:-qwen}" = "openai-codex" ]; then
+            if [ -z "${HICLAW_OPENAI_CODEX_REFRESH_TOKEN:-}" ]; then
+                error "openai-codex requires interactive browser login during installation"
+            fi
+            HICLAW_DEFAULT_MODEL="${HICLAW_DEFAULT_MODEL:-gpt-5.4}"
+            HICLAW_OPENAI_BASE_URL=""
+            HICLAW_LLM_API_KEY=""
+            log "$(msg llm.provider.selected_openai_codex)"
+            log "$(msg llm.model.default "${HICLAW_DEFAULT_MODEL}")"
+            HICLAW_EMBEDDING_MODEL=""
+            return 0
+        fi
         HICLAW_LLM_PROVIDER="${HICLAW_LLM_PROVIDER:-qwen}"
         HICLAW_DEFAULT_MODEL="${HICLAW_DEFAULT_MODEL:-qwen3.5-plus}"
         log "$(msg llm.provider.qwen_default "${HICLAW_LLM_PROVIDER}")"
@@ -1567,6 +1585,7 @@ step_llm() {
     echo "$(msg llm.providers_title)"
     echo "$(msg llm.provider.alibaba)"
     echo "$(msg llm.provider.openai_compat)"
+    echo "$(msg llm.provider.openai_codex)"
     echo ""
     local PROVIDER_CHOICE
     if [ "${HICLAW_QUICKSTART}" = "1" ]; then
@@ -1693,10 +1712,34 @@ step_llm() {
             prompt HICLAW_LLM_API_KEY "$(msg llm.apikey_prompt)" "" "true" || return 0
             test_llm_connectivity "${HICLAW_OPENAI_BASE_URL}" "${HICLAW_LLM_API_KEY}" "${HICLAW_DEFAULT_MODEL}" || return 0
             ;;
+        3|openai-codex)
+            HICLAW_LLM_PROVIDER="openai-codex"
+            HICLAW_OPENAI_BASE_URL=""
+            HICLAW_LLM_API_KEY=""
+            log "$(msg llm.provider.selected_openai_codex)"
+            echo ""
+            read -e -p "$(msg llm.codex.model_prompt): " HICLAW_DEFAULT_MODEL
+            if [ "${HICLAW_DEFAULT_MODEL}" = "b" ]; then STEP_RESULT="back"; return 0; fi
+            HICLAW_DEFAULT_MODEL="${HICLAW_DEFAULT_MODEL:-gpt-5.4}"
+            log "$(msg llm.model.label "${HICLAW_DEFAULT_MODEL}")"
+            prompt_custom_model_params "${HICLAW_DEFAULT_MODEL}" || return 0
+            openai_codex_browser_authorize || return 0
+            ;;
         *)
             error "$(msg llm.provider.invalid "${PROVIDER_CHOICE}")"
             ;;
     esac
+
+    if [ "${HICLAW_LLM_PROVIDER}" = "openai-codex" ]; then
+        HICLAW_EMBEDDING_MODEL=""
+        log "  Embedding model: disabled (OpenAI Codex OAuth does not expose embeddings)"
+        export HICLAW_LLM_PROVIDER HICLAW_DEFAULT_MODEL
+        [ -n "${HICLAW_OPENAI_BASE_URL+x}" ] && export HICLAW_OPENAI_BASE_URL
+        [ -n "${HICLAW_OPENAI_CODEX_REFRESH_TOKEN+x}" ] && export HICLAW_OPENAI_CODEX_REFRESH_TOKEN
+        log ""
+        return 0
+    fi
+
     # --- Embedding model (optional, auto-tested) ---
     echo ""
     log "$(msg llm.embedding.title)"
@@ -1746,6 +1789,7 @@ step_llm() {
 
     export HICLAW_LLM_PROVIDER HICLAW_DEFAULT_MODEL
     [ -n "${HICLAW_OPENAI_BASE_URL+x}" ] && export HICLAW_OPENAI_BASE_URL
+    [ -n "${HICLAW_OPENAI_CODEX_REFRESH_TOKEN+x}" ] && export HICLAW_OPENAI_CODEX_REFRESH_TOKEN
     log ""
 }
 
@@ -2201,6 +2245,7 @@ HICLAW_LLM_PROVIDER=${HICLAW_LLM_PROVIDER}
 HICLAW_DEFAULT_MODEL=${HICLAW_DEFAULT_MODEL}
 HICLAW_LLM_API_KEY=${HICLAW_LLM_API_KEY}
 HICLAW_OPENAI_BASE_URL=${HICLAW_OPENAI_BASE_URL:-}
+HICLAW_OPENAI_CODEX_REFRESH_TOKEN=${HICLAW_OPENAI_CODEX_REFRESH_TOKEN:-}
 HICLAW_MODEL_CONTEXT_WINDOW=${HICLAW_MODEL_CONTEXT_WINDOW:-}
 HICLAW_MODEL_MAX_TOKENS=${HICLAW_MODEL_MAX_TOKENS:-}
 HICLAW_MODEL_REASONING=${HICLAW_MODEL_REASONING:-}
@@ -2714,6 +2759,147 @@ test_llm_connectivity() {
             fi
         fi
     fi
+}
+
+openai_codex_browser_authorize() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        error "python3 is required for OpenAI Codex browser login"
+    fi
+
+    local refresh_token
+    refresh_token=$(python3 - <<'PY'
+import base64
+import hashlib
+import json
+import secrets
+import sys
+import threading
+import urllib.parse
+import urllib.request
+import webbrowser
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann"
+ISSUER = "https://auth.openai.com"
+PORT = 1455
+REDIRECT_URI = f"http://127.0.0.1:{PORT}/auth/callback"
+TIMEOUT_SECONDS = 300
+
+verifier = base64.urlsafe_b64encode(secrets.token_bytes(48)).decode().rstrip("=")
+challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
+state = base64.urlsafe_b64encode(secrets.token_bytes(24)).decode().rstrip("=")
+params = urllib.parse.urlencode({
+    "response_type": "code",
+    "client_id": CLIENT_ID,
+    "redirect_uri": REDIRECT_URI,
+    "scope": "openid profile email offline_access",
+    "code_challenge": challenge,
+    "code_challenge_method": "S256",
+    "id_token_add_organizations": "true",
+    "codex_cli_simplified_flow": "true",
+    "state": state,
+    "originator": "hiclaw",
+})
+auth_url = f"{ISSUER}/oauth/authorize?{params}"
+result = {}
+ready = threading.Event()
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path != "/auth/callback":
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        query = urllib.parse.parse_qs(parsed.query)
+        error = query.get("error", [""])[0]
+        error_description = query.get("error_description", [error])[0]
+        code = query.get("code", [""])[0]
+        returned_state = query.get("state", [""])[0]
+
+        if error:
+            result["error"] = error_description or error
+            status = 400
+            body = "Authorization failed. You can close this window."
+        elif not code:
+            result["error"] = "Missing authorization code"
+            status = 400
+            body = "Authorization failed. You can close this window."
+        elif returned_state != state:
+            result["error"] = "Invalid OAuth state"
+            status = 400
+            body = "Authorization failed. You can close this window."
+        else:
+            try:
+                token_request = urllib.request.Request(
+                    f"{ISSUER}/oauth/token",
+                    data=urllib.parse.urlencode({
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": REDIRECT_URI,
+                        "client_id": CLIENT_ID,
+                        "code_verifier": verifier,
+                    }).encode(),
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+                with urllib.request.urlopen(token_request, timeout=30) as response:
+                    tokens = json.loads(response.read().decode())
+                refresh_token = tokens.get("refresh_token", "")
+                if not refresh_token:
+                    raise RuntimeError("Missing refresh token")
+                result["refresh_token"] = refresh_token
+                status = 200
+                body = "Authorization succeeded. You can close this window."
+            except Exception as exc:
+                result["error"] = str(exc)
+                status = 502
+                body = "Authorization failed. You can close this window."
+
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(f"<!doctype html><html><body><p>{body}</p></body></html>".encode())
+        ready.set()
+
+    def log_message(self, format, *args):
+        return
+
+try:
+    server = HTTPServer(("127.0.0.1", PORT), Handler)
+except OSError as exc:
+    print(f"Failed to start local OAuth callback server on port {PORT}: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+print("Starting OpenAI Codex browser login...", file=sys.stderr)
+opened = webbrowser.open(auth_url)
+if opened:
+    print("A browser window was opened for authorization.", file=sys.stderr)
+else:
+    print(f"Open this URL in your browser:\n{auth_url}", file=sys.stderr)
+print("Waiting for browser authorization...", file=sys.stderr)
+
+if not ready.wait(TIMEOUT_SECONDS):
+    server.shutdown()
+    print(f"Browser login timed out after {TIMEOUT_SECONDS} seconds.", file=sys.stderr)
+    sys.exit(1)
+
+server.shutdown()
+thread.join(timeout=1)
+if "error" in result:
+    print(f"Browser login failed: {result['error']}", file=sys.stderr)
+    sys.exit(1)
+
+print(result["refresh_token"])
+PY
+) || return 1
+
+    HICLAW_OPENAI_CODEX_REFRESH_TOKEN="${refresh_token}"
+    export HICLAW_OPENAI_CODEX_REFRESH_TOKEN
+    log "OpenAI Codex browser login succeeded"
+    return 0
 }
 
 test_embedding_connectivity() {

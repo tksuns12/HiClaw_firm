@@ -20,6 +20,8 @@ Record image-affecting changes to `manager/`, `worker/`, `openclaw-base/` here b
 
 - **Interactive Version Selection** — Install scripts now prompt users to select a specific version during installation.
 
+- **OpenAI Codex Subscription OAuth** — Added a Manager-side Codex OAuth proxy plus installer/runtime wiring so HiClaw can use ChatGPT Plus/Pro Codex subscription tokens through Higress without exposing OAuth credentials to Workers.
+
 - **Post-Install Verification** — New verification script runs after installation to confirm all components are healthy.
 
 - **Multi-Phase Collaboration Protocol** — Added multi-phase collaboration protocol to task-lifecycle, improving coordination between Manager and Workers on complex tasks.
