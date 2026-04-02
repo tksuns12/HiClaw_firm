@@ -86,7 +86,7 @@ When the human admin requests switching a Worker to a model you don't recognize,
 | Model | contextWindow | maxTokens |
 |-------|--------------|-----------|
 | gpt-5.4 | 1,050,000 | 128,000 |
-| gpt-5.3-codex / gpt-5-mini / gpt-5-nano | 400,000 | 128,000 |
+| gpt-5.4-mini / gpt-5.3-codex / gpt-5.2 / gpt-5.2-codex / gpt-5.1-codex / gpt-5.1-codex-mini / gpt-5.1-codex-max / gpt-5-mini / gpt-5-nano | 400,000 | 128,000 |
 | claude-opus-4-6 | 1,000,000 | 128,000 |
 | claude-sonnet-4-6 | 1,000,000 | 64,000 |
 | claude-haiku-4-5 | 200,000 | 64,000 |
