@@ -36,6 +36,11 @@ fi
 export MATRIX_DOMAIN="${HICLAW_MATRIX_DOMAIN:-matrix-local.hiclaw.io:8080}"
 AI_GATEWAY_DOMAIN="${HICLAW_AI_GATEWAY_DOMAIN:-aigw-local.hiclaw.io}"
 
+if [ "${HICLAW_LLM_PROVIDER:-qwen}" = "openai-codex" ] && [ -z "${HICLAW_OPENAI_CODEX_REFRESH_TOKEN:-}" ]; then
+    log "ERROR: HICLAW_OPENAI_CODEX_REFRESH_TOKEN is required when HICLAW_LLM_PROVIDER=openai-codex"
+    exit 1
+fi
+
 # ============================================================
 # Cloud mode: validate required environment variables + initial credentials
 # ============================================================
@@ -83,6 +88,9 @@ if [ "${HICLAW_RUNTIME}" != "aliyun" ]; then
     waitForService "Tuwunel" "127.0.0.1" 6167 120
     waitForHTTP "Tuwunel Matrix API" "${HICLAW_MATRIX_SERVER}/_tuwunel/server_version" 120
     waitForService "MinIO" "127.0.0.1" 9000 120
+    if [ "${HICLAW_LLM_PROVIDER:-qwen}" = "openai-codex" ]; then
+        waitForHTTP "OpenAI Codex OAuth proxy" "http://127.0.0.1:${HICLAW_OPENAI_CODEX_PROXY_PORT:-1455}/healthz" 90
+    fi
 else
     # Cloud mode: wait for external Tuwunel
     log "Waiting for Tuwunel Matrix server at ${HICLAW_MATRIX_SERVER}..."
@@ -456,7 +464,7 @@ export MANAGER_GATEWAY_KEY="${HICLAW_MANAGER_GATEWAY_KEY}"
 # Resolve model parameters based on model name
 MODEL_NAME="${HICLAW_DEFAULT_MODEL:-qwen3.5-plus}"
 case "${MODEL_NAME}" in
-    gpt-5.3-codex|gpt-5-mini|gpt-5-nano)
+    gpt-5.1-codex|gpt-5.1-codex-max|gpt-5.1-codex-mini|gpt-5.2|gpt-5.2-codex|gpt-5.3-codex|gpt-5.4-mini|gpt-5-mini|gpt-5-nano)
         export MODEL_CONTEXT_WINDOW=400000 MODEL_MAX_TOKENS=128000 ;;
     claude-opus-4-6)
         export MODEL_CONTEXT_WINDOW=1000000 MODEL_MAX_TOKENS=128000 ;;
@@ -490,7 +498,7 @@ log "Matrix E2EE: ${MATRIX_E2EE_ENABLED}"
 
 # Resolve input modalities: only vision-capable models get "image"
 case "${MODEL_NAME}" in
-    gpt-5.4|gpt-5.3-codex|gpt-5-mini|gpt-5-nano|claude-opus-4-6|claude-sonnet-4-6|claude-haiku-4-5|qwen3.5-plus|kimi-k2.5)
+    gpt-5.1-codex|gpt-5.1-codex-max|gpt-5.1-codex-mini|gpt-5.2|gpt-5.2-codex|gpt-5.3-codex|gpt-5.4|gpt-5.4-mini|gpt-5-mini|gpt-5-nano|claude-opus-4-6|claude-sonnet-4-6|claude-haiku-4-5|qwen3.5-plus|kimi-k2.5)
         export MODEL_INPUT='["text", "image"]' ;;
     *)
         export MODEL_INPUT='["text"]' ;;

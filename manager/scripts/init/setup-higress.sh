@@ -22,6 +22,7 @@ CONSOLE_DOMAIN="${HICLAW_CONSOLE_DOMAIN:-console-local.hiclaw.io}"
 # Higress routes always include these so workers can reach manager services reliably.
 AI_GATEWAY_LOCAL_DOMAIN="aigw-local.hiclaw.io"
 FS_LOCAL_DOMAIN="fs-local.hiclaw.io"
+CODEX_PROXY_PORT="${HICLAW_OPENAI_CODEX_PROXY_PORT:-1455}"
 
 LLM_PROVIDER="${HICLAW_LLM_PROVIDER:-qwen}"
 LLM_API_URL="${HICLAW_LLM_API_URL:-}"
@@ -182,7 +183,15 @@ fi
 # ============================================================
 # LLM Provider + AI Gateway Route
 # ============================================================
-if [ -n "${HICLAW_LLM_API_KEY}" ]; then
+HAS_LLM_CREDENTIALS="false"
+if [ -n "${HICLAW_LLM_API_KEY:-}" ]; then
+    HAS_LLM_CREDENTIALS="true"
+fi
+if [ "${LLM_PROVIDER}" = "openai-codex" ] && [ -n "${HICLAW_OPENAI_CODEX_REFRESH_TOKEN:-}" ]; then
+    HAS_LLM_CREDENTIALS="true"
+fi
+
+if [ "${HAS_LLM_CREDENTIALS}" = "true" ]; then
 
     # Create/update LLM provider (GET → PUT if exists, POST if not)
     case "${LLM_PROVIDER}" in
@@ -225,6 +234,23 @@ if [ -n "${HICLAW_LLM_API_KEY}" ]; then
                 else
                     higress_api POST /v1/ai/providers "Creating LLM provider (openai-compat)" "${PROVIDER_BODY}"
                 fi
+            fi
+            ;;
+        openai-codex)
+            existing_svc=$(higress_get /v1/service-sources/openai-codex-proxy)
+            SVC_BODY='{"name":"openai-codex-proxy","type":"static","domain":"127.0.0.1","port":'"${CODEX_PROXY_PORT}"',"properties":{},"authN":{"enabled":false}}'
+            if [ -n "${existing_svc}" ]; then
+                higress_api PUT /v1/service-sources/openai-codex-proxy "Updating OpenAI Codex proxy service source" "${SVC_BODY}"
+            else
+                higress_api POST /v1/service-sources "Registering OpenAI Codex proxy service source" "${SVC_BODY}"
+            fi
+
+            PROVIDER_BODY='{"type":"openai","name":"openai-codex","tokens":["oauth-dummy-key"],"version":0,"protocol":"openai/v1","tokenFailoverConfig":{"enabled":false},"rawConfigs":{"openaiCustomUrl":"http://127.0.0.1:'"${CODEX_PROXY_PORT}"'/v1","openaiCustomServiceName":"openai-codex-proxy.static","openaiCustomServicePort":'"${CODEX_PROXY_PORT}"',"hiclawMode":true}}'
+            existing_provider=$(higress_get /v1/ai/providers/openai-codex)
+            if [ -n "${existing_provider}" ]; then
+                higress_api PUT /v1/ai/providers/openai-codex "Updating LLM provider (openai-codex)" "${PROVIDER_BODY}"
+            else
+                higress_api POST /v1/ai/providers "Creating LLM provider (openai-codex)" "${PROVIDER_BODY}"
             fi
             ;;
         *)
@@ -281,7 +307,7 @@ if [ -n "${HICLAW_LLM_API_KEY}" ]; then
     fi
 
 else
-    log "Skipping AI Gateway configuration (no HICLAW_LLM_API_KEY)"
+    log "Skipping AI Gateway configuration (missing provider credentials for ${LLM_PROVIDER})"
 fi
 
 # ============================================================
